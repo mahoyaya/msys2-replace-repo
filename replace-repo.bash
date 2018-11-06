@@ -8,7 +8,7 @@ if [ "${rhost}x" = "x" ]; then
   exit
 fi
 
-ret=`echo $rhost | egrep "^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}:?[0-9]{1,5}$" | wc -l`
+ret=`echo $rhost | egrep "^([0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}|[a-z][-.a-z0-9]{0,255}):?[0-9]{0,5}$" | wc -l`
 
 if [ "$ret" -eq 1 ]; then
   echo "[*] operation start."
@@ -41,7 +41,12 @@ else
   echo "[+] replace configuration operation is start."
 
   # change the configuration for msys
-  sed -i.bak -e "/^Server/d" -e "/^\#\# msys2.org/a Server = http:\/\/${rhost}\/x86_64" /etc/pacman.d/mirrorlist.msys
+  msys_arch=`set | grep 'MSYSTEM_CARCH=x86_64' | wc -l`
+  if [ $msys_arch -eq 1 ]; then
+    sed -i.bak -e "/^Server/d" -e "/^\#\# msys2.org/a Server = http:\/\/${rhost}\/msys/x86_64" /etc/pacman.d/mirrorlist.msys
+  else
+    sed -i.bak -e "/^Server/d" -e "/^\#\# msys2.org/a Server = http:\/\/${rhost}\/msys/i1686" /etc/pacman.d/mirrorlist.msys
+  fi
   ret=`grep "$1" $keyfile2 | wc -l`
   if [ $ret -eq 1 ]; then
     echo "[+] replace operation is successful."
